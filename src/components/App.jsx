@@ -2,75 +2,75 @@ import { Section } from './Section';
 import { Statistics } from './Statistics';
 import { FeedbackOptions } from './FeedbackOptions';
 
-import React from 'react';
+import { useState } from 'react';
 import { Notification } from './Notification';
 
-export class App extends React.Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  };
-  // змінюємо кількість відгуків записуючи у з відповідної кнопки за рахунок динамічного ключа [name] для будь-якої кнопки
-  onLeaveFeedback = event => {
-    const { name } = event.target; //деструктиризація імя кнопки з event.target.name
+export const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
 
-    this.setState(prevState => ({
-      [name]: prevState[name] + 1,
-    }));
+  const onLeaveFeedback = event => {
+    const { name } = event.target;
+
+    switch (name) {
+      case 'good':
+        setGood(prevGood => prevGood + 1);
+        break;
+      case 'neutral':
+        setNeutral(prevNeutral => prevNeutral + 1);
+        break;
+      case 'bad':
+        setBad(prevBad => prevBad + 1);
+        break;
+      default:
+        break;
+    }
   };
 
-  countTotalFeedback = () => {
-    const { good, neutral, bad } = this.state;
+  const countTotalFeedback = () => {
     return good + neutral + bad;
   };
 
-  countPositiveFeedbackPercentage = () => {
-    const { good } = this.state;
-    const total = this.countTotalFeedback();
+  const countPositiveFeedbackPercentage = () => {
+    const total = countTotalFeedback();
     if (total === 0) {
       return 0;
     }
     return Math.round((good / total) * 100);
   };
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: 400,
-          gap: 10,
-          alignItems: 'center',
-          padding: 30,
-          margin: '0 auto',
-        }}
-      >
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            //! передача масиву назв (ключів) полів state (good, neutral, bad)
-            options={Object.keys(this.state)}
-            onLeaveFeedback={this.onLeaveFeedback}
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: 400,
+        gap: 10,
+        alignItems: 'center',
+        padding: 30,
+        margin: '0 auto',
+      }}
+    >
+      <Section title="Please leave feedback">
+        <FeedbackOptions
+          options={Object.keys({ good, neutral, bad })}
+          onLeaveFeedback={onLeaveFeedback}
+        />
+      </Section>
+      <Section title="Statistics">
+        {countTotalFeedback() ? (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={countTotalFeedback()}
+            positivePercentage={countPositiveFeedbackPercentage()}
           />
-        </Section>
-        <Section title="Statistics">
-          {/* через тернарний оператор прописуємо виведення статистики або
-          повідомлення */}
-          {this.countTotalFeedback() ? (
-            <Statistics
-              good={good}
-              neutral={neutral}
-              bad={bad}
-              total={this.countTotalFeedback()}
-              positivePercentage={this.countPositiveFeedbackPercentage()}
-            />
-          ) : (
-            <Notification message="There is no feedback" />
-          )}
-        </Section>
-      </div>
-    );
-  }
-}
+        ) : (
+          <Notification message="There is no feedback" />
+        )}
+      </Section>
+    </div>
+  );
+};
